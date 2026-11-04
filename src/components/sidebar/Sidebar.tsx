@@ -1,8 +1,8 @@
 import { Brain, Folder, FolderOpen, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ItemTypeIcon } from "@/components/items/ItemTypeIcon";
 import {
-  getItemTypeIcon,
   getItemTypeLabel,
   getItemTypeTextColor,
   isProItemType,
@@ -53,13 +53,12 @@ export function Sidebar() {
 
           <SidebarSection title="Item types">
             {mockItemTypes.map((type) => {
-              const Icon = getItemTypeIcon(type.icon);
               return (
                 <SidebarLink
                   key={type.id}
                   href={`/items/${type.slug}`}
                   label={getItemTypeLabel(type.slug)}
-                  icon={<Icon className={getItemTypeTextColor(type.name)} />}
+                  icon={<ItemTypeIcon icon={type.icon} className={getItemTypeTextColor(type.name)} />}
                   trailing={
                     <>
                       {isProItemType(type.name) && (
