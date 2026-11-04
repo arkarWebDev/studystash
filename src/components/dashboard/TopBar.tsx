@@ -2,14 +2,14 @@ import { GraduationCap, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SidebarToggle } from "@/components/sidebar/SidebarToggle";
 
 export function TopBar() {
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b px-4">
       {/* Left: matches the sidebar width on desktop so the search lines up with the main area */}
       <div className="flex shrink-0 items-center gap-2 md:w-56">
-        {/* Reserved for the sidebar toggle (phase 2) */}
-        <div className="size-8 shrink-0" aria-hidden="true" />
+        <SidebarToggle />
         <Link
           href="/dashboard"
           className="flex items-center gap-2 rounded-md font-semibold tracking-tight focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
