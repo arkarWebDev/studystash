@@ -1,19 +1,13 @@
 # Current Feature
 
-<!-- Feature name & short description -->
-
 ## Status
 
-<!-- Not Started | In Progress | Completed -->
+Completed
 
 ## Goals
 
-<!-- Goals & Requirements -->
-
 ## Notes
-
-<!-- Any notes -->
 
 ## History
 
-<!-- Keep this updated. Earliest to Latest -->
+- 2026-11-05 — feature/dashboard-phase-1 — shadcn/ui setup, dark-first theme with item type color tokens, `/dashboard` route and app layout, top bar with logo and project name, sidebar/main placeholders
