@@ -1,0 +1,242 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum ContentType {
+  TEXT // note, flashcard, formula, question
+  URL // link, video
+  FILE // file, image
+}
+
+enum Rating {
+  AGAIN
+  HARD
+  GOOD
+  EASY
+}
+
+// ─────────────────────────────────────────────
+// Auth (Auth.js / NextAuth v5 Prisma adapter)
+// ─────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String? // null for OAuth-only users
+
+  // Subscription
+  isPro                Boolean @default(false)
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+
+  // Study stats
+  reviewStreak   Int       @default(0)
+  lastReviewedAt DateTime?
+  timezone       String    @default("UTC") // IANA name, e.g. "Asia/Yangon"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts         Account[]
+  sessions         Session[]
+  items            Item[]
+  itemTypes        ItemType[]
+  collections      Collection[]
+  tags             Tag[]
+  flashcardReviews FlashcardReview[]
+  reviewLogs       ReviewLog[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ─────────────────────────────────────────────
+// Core content
+// ─────────────────────────────────────────────
+
+model ItemType {
+  id       String  @id @default(cuid())
+  name     String // "note"
+  slug     String // "notes" (used in /items/[slug])
+  icon     String // Lucide icon name, e.g. "NotebookPen"
+  color    String // hex, e.g. "#3b82f6"
+  isSystem Boolean @default(false)
+
+  userId String? // null for system types
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items              Item[]
+  defaultCollections Collection[]
+
+  @@unique([userId, slug])
+  @@index([userId])
+}
+
+model Item {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  contentType ContentType
+
+  // TEXT types
+  content String? // note body, flashcard front, question text, formula
+  answer  String? // flashcard back, question solution
+
+  // URL types
+  url String?
+
+  // FILE types
+  fileUrl  String? // Cloudflare R2 object key / URL
+  fileName String? // original file name
+  fileSize Int? // bytes
+
+  isFavorite Boolean   @default(false)
+  isPinned   Boolean   @default(false)
+  lastUsedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemTypeId String
+  itemType   ItemType @relation(fields: [itemTypeId], references: [id], onDelete: Restrict)
+
+  tags            Tag[]
+  collections     ItemCollection[]
+  flashcardReview FlashcardReview?
+  reviewLogs      ReviewLog[]
+
+  @@index([userId, itemTypeId])
+  @@index([userId, isPinned, updatedAt])
+  @@index([userId, lastUsedAt])
+}
+
+model Collection {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  examDate    DateTime?
+  isFavorite  Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultTypeId String?
+  defaultType   ItemType? @relation(fields: [defaultTypeId], references: [id], onDelete: SetNull)
+
+  items ItemCollection[]
+
+  @@index([userId, updatedAt])
+}
+
+model ItemCollection {
+  itemId       String
+  collectionId String
+  addedAt      DateTime @default(now())
+
+  item       Item       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, collectionId])
+  @@index([collectionId])
+}
+
+model Tag {
+  id   String @id @default(cuid())
+  name String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items Item[]
+
+  @@unique([userId, name])
+}
+
+// ─────────────────────────────────────────────
+// Spaced repetition
+// ─────────────────────────────────────────────
+
+model FlashcardReview {
+  id             String    @id @default(cuid())
+  easeFactor     Float     @default(2.5)
+  interval       Int       @default(0) // days
+  repetitions    Int       @default(0)
+  dueDate        DateTime  @default(now())
+  lastReviewedAt DateTime?
+
+  itemId String @unique
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dueDate])
+}
+
+model ReviewLog {
+  id         String   @id @default(cuid())
+  rating     Rating
+  interval   Int // interval (days) after this review
+  easeFactor Float // ease factor after this review
+  reviewedAt DateTime @default(now())
+
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, reviewedAt])
+  @@index([itemId])
+}
