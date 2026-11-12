@@ -1,6 +1,6 @@
 import { createElement, type ComponentProps } from "react";
 import type { LucideIcon } from "lucide-react";
-import { getItemTypeIcon } from "@/lib/item-types";
+import { getTypeIcon } from "@/lib/type-icons";
 
 interface ItemTypeIconProps extends ComponentProps<LucideIcon> {
   icon: string;
@@ -8,5 +8,5 @@ interface ItemTypeIconProps extends ComponentProps<LucideIcon> {
 
 // Renders the Lucide icon stored on ItemType.icon (e.g. "NotebookPen")
 export function ItemTypeIcon({ icon, ...props }: ItemTypeIconProps) {
-  return createElement(getItemTypeIcon(icon), props);
+  return createElement(getTypeIcon(icon), props);
 }

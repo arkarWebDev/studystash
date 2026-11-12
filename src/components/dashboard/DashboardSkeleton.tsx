@@ -1,7 +1,8 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
 const STAT_PLACEHOLDERS = ["items", "collections", "favorite-items", "favorite-collections"];
-const CARD_PLACEHOLDERS = ["a", "b", "c", "d", "e", "f"];
+const COLLECTION_PLACEHOLDERS = ["a", "b", "c", "d", "e", "f"];
+const ITEM_PLACEHOLDERS = ["a", "b", "c", "d", "e", "f"];
 
 export function DashboardSkeleton() {
   return (
@@ -13,9 +14,17 @@ export function DashboardSkeleton() {
         ))}
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {CARD_PLACEHOLDERS.map((key) => (
+        {COLLECTION_PLACEHOLDERS.map((key) => (
           <Skeleton key={key} className="h-32 rounded-xl" />
         ))}
+      </div>
+      <div className="flex flex-col gap-3">
+        <Skeleton className="h-4 w-28" />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {ITEM_PLACEHOLDERS.map((key) => (
+            <Skeleton key={key} className="h-28 rounded-xl" />
+          ))}
+        </div>
       </div>
     </div>
   );

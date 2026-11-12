@@ -2,10 +2,11 @@ import Link from "next/link";
 import { CollectionCard } from "@/components/collections/CollectionCard";
 import { CollectionsEmptyState } from "@/components/collections/CollectionsEmptyState";
 import { ItemCard } from "@/components/items/ItemCard";
-import { getPinnedItems, getRecentItems, getReviewSummary, type DashboardStats } from "@/lib/dashboard";
+import { ItemsEmptyState } from "@/components/items/ItemsEmptyState";
+import { getReviewSummary, type DashboardStats } from "@/lib/dashboard";
 import { getTodayInTimeZone } from "@/lib/dates";
-import { mockUser } from "@/lib/mock-data";
 import type { CollectionCardData, UpcomingExam } from "@/types/collection";
+import type { ItemCardData } from "@/types/item";
 import { DashboardSection } from "./DashboardSection";
 import { ReviewBanner } from "./ReviewBanner";
 import { StatsCards } from "./StatsCards";
@@ -16,16 +17,23 @@ const ITEM_GRID = "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3";
 
 interface DashboardContentProps {
   recentCollections: CollectionCardData[];
-  stats: DashboardStats;
   upcomingExams: UpcomingExam[];
+  pinnedItems: ItemCardData[];
+  recentItems: ItemCardData[];
+  stats: DashboardStats;
+  timeZone: string;
 }
 
-export function DashboardContent({ recentCollections, stats, upcomingExams }: DashboardContentProps) {
-  // Items are still mock data, so their relative dates use the mock user's timezone
-  const today = getTodayInTimeZone(new Date(), mockUser.timezone);
-
+export function DashboardContent({
+  recentCollections,
+  upcomingExams,
+  pinnedItems,
+  recentItems,
+  stats,
+  timeZone,
+}: DashboardContentProps) {
+  const today = getTodayInTimeZone(new Date(), timeZone);
   const review = getReviewSummary();
-  const pinnedItems = getPinnedItems();
 
   return (
     <div className="mx-auto flex min-w-0 max-w-6xl flex-col gap-8">
@@ -57,19 +65,23 @@ export function DashboardContent({ recentCollections, stats, upcomingExams }: Da
       {pinnedItems.length > 0 && (
         <DashboardSection title="Pinned">
           <div className={ITEM_GRID}>
-            {pinnedItems.map((entry) => (
-              <ItemCard key={entry.item.id} entry={entry} today={today} />
+            {pinnedItems.map((item) => (
+              <ItemCard key={item.id} item={item} today={today} timeZone={timeZone} />
             ))}
           </div>
         </DashboardSection>
       )}
 
       <DashboardSection title="Recent items">
-        <div className={ITEM_GRID}>
-          {getRecentItems().map((entry) => (
-            <ItemCard key={entry.item.id} entry={entry} today={today} />
-          ))}
-        </div>
+        {recentItems.length > 0 ? (
+          <div className={ITEM_GRID}>
+            {recentItems.map((item) => (
+              <ItemCard key={item.id} item={item} today={today} timeZone={timeZone} />
+            ))}
+          </div>
+        ) : (
+          <ItemsEmptyState />
+        )}
       </DashboardSection>
     </div>
   );

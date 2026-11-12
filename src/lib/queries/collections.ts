@@ -1,11 +1,11 @@
 import { getDominantType, summarizeTypes, type TypedItem } from "@/lib/collection-types";
 import { daysBetween, getStartOfDayInTimeZone, getTodayInTimeZone } from "@/lib/dates";
 import { db } from "@/lib/db";
+import { getUserTimezone } from "@/lib/queries/current-user";
 import type { CollectionCardData, CollectionStats, UpcomingExam } from "@/types/collection";
 
 const DEFAULT_RECENT_COLLECTIONS_LIMIT = 6;
 const DEFAULT_UPCOMING_EXAMS_LIMIT = 3;
-const FALLBACK_TIMEZONE = "UTC";
 
 const typeInfoSelect = { slug: true, name: true, icon: true, color: true } as const;
 
@@ -56,8 +56,7 @@ export async function getUpcomingExams(
   userId: string,
   limit = DEFAULT_UPCOMING_EXAMS_LIMIT,
 ): Promise<UpcomingExam[]> {
-  const user = await db.user.findUnique({ where: { id: userId }, select: { timezone: true } });
-  const timeZone = user?.timezone ?? FALLBACK_TIMEZONE;
+  const timeZone = await getUserTimezone(userId);
   const now = new Date();
   const today = getTodayInTimeZone(now, timeZone);
 
