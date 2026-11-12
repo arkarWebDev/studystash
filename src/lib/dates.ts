@@ -37,7 +37,16 @@ function getTimeZoneOffsetMs(date: Date, timeZone: string): number {
 // The instant local midnight began today in `timeZone`
 export function getStartOfDayInTimeZone(now: Date, timeZone: string): Date {
   const midnightAsUtc = Date.parse(getTodayInTimeZone(now, timeZone));
-  return new Date(midnightAsUtc - getTimeZoneOffsetMs(now, timeZone));
+  // Use the offset in effect at midnight, not at `now`: they differ on DST-change days
+  const guess = new Date(midnightAsUtc - getTimeZoneOffsetMs(now, timeZone));
+  return new Date(midnightAsUtc - getTimeZoneOffsetMs(guess, timeZone));
+}
+
+// The instant local midnight begins tomorrow in `timeZone` (exclusive end of today)
+export function getEndOfDayInTimeZone(now: Date, timeZone: string): Date {
+  // 1.5 days after midnight lands safely inside tomorrow, even across a DST change
+  const insideTomorrow = new Date(getStartOfDayInTimeZone(now, timeZone).getTime() + MS_PER_DAY * 1.5);
+  return getStartOfDayInTimeZone(insideTomorrow, timeZone);
 }
 
 // Whole calendar days from `from` to `to` (both YYYY-MM-DD); negative when `to` is earlier

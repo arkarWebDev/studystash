@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { use } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +23,7 @@ interface UserMenuProps {
   name: string;
   email: string;
   image: string | null;
+  isPro: boolean;
 }
 
 function getInitials(name: string): string {
@@ -34,7 +36,7 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-export function UserMenu({ name, email, image }: UserMenuProps) {
+export function UserMenu({ name, email, image, isPro }: UserMenuProps) {
   const isCollapsed = use(SidebarRailContext);
   const { setIsMobileOpen } = useSidebar();
   const { resolvedTheme, setTheme } = useTheme();
@@ -58,7 +60,14 @@ export function UserMenu({ name, email, image }: UserMenuProps) {
           {!isCollapsed && (
             <>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium">{name}</span>
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <span className="truncate text-sm font-medium">{name}</span>
+                  {isPro && (
+                    <Badge variant="outline" className="h-4 shrink-0 px-1 text-[10px]">
+                      Pro
+                    </Badge>
+                  )}
+                </span>
                 <span className="block truncate text-xs text-muted-foreground">{email}</span>
               </span>
               <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />

@@ -3,10 +3,11 @@ import { CollectionCard } from "@/components/collections/CollectionCard";
 import { CollectionsEmptyState } from "@/components/collections/CollectionsEmptyState";
 import { ItemCard } from "@/components/items/ItemCard";
 import { ItemsEmptyState } from "@/components/items/ItemsEmptyState";
-import { getReviewSummary, type DashboardStats } from "@/lib/dashboard";
+import type { DashboardStats } from "@/lib/dashboard";
 import { getTodayInTimeZone } from "@/lib/dates";
 import type { CollectionCardData, UpcomingExam } from "@/types/collection";
 import type { ItemCardData } from "@/types/item";
+import type { ReviewSummary } from "@/types/review";
 import { DashboardSection } from "./DashboardSection";
 import { ReviewBanner } from "./ReviewBanner";
 import { StatsCards } from "./StatsCards";
@@ -21,10 +22,12 @@ interface DashboardContentProps {
   pinnedItems: ItemCardData[];
   recentItems: ItemCardData[];
   stats: DashboardStats;
+  review: ReviewSummary;
   timeZone: string;
 }
 
 export function DashboardContent({
+  review,
   recentCollections,
   upcomingExams,
   pinnedItems,
@@ -33,11 +36,10 @@ export function DashboardContent({
   timeZone,
 }: DashboardContentProps) {
   const today = getTodayInTimeZone(new Date(), timeZone);
-  const review = getReviewSummary();
 
   return (
     <div className="mx-auto flex min-w-0 max-w-6xl flex-col gap-8">
-      <ReviewBanner cardsDue={review.cardsDue} reviewStreak={review.reviewStreak} />
+      <ReviewBanner cardsDue={review.cardsDueToday} reviewStreak={review.reviewStreak} />
       <StatsCards stats={stats} />
       <UpcomingExams exams={upcomingExams} />
 

@@ -1,4 +1,4 @@
-// Temporary mock data for the dashboard UI. Replace with Prisma queries once the database exists.
+// Mock data from before the database existed. The app no longer imports it; kept for tests or Storybook.
 // Dates are plain ISO date strings (YYYY-MM-DD) so they stay serializable for client components.
 
 export type MockContentType = "TEXT" | "URL" | "FILE";

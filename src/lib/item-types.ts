@@ -32,7 +32,35 @@ const ITEM_TYPE_BORDER_COLORS: Record<string, string> = {
   image: "border-type-image/50 hover:border-type-image",
 };
 
+const ITEM_TYPE_DOT_COLORS: Record<string, string> = {
+  note: "bg-type-note",
+  flashcard: "bg-type-flashcard",
+  formula: "bg-type-formula",
+  question: "bg-type-question",
+  link: "bg-type-link",
+  video: "bg-type-video",
+  file: "bg-type-file",
+  image: "bg-type-image",
+};
+
+// System types in display order (matches the seed table)
+export const SYSTEM_TYPE_ORDER: readonly string[] = [
+  "note",
+  "flashcard",
+  "formula",
+  "question",
+  "link",
+  "video",
+  "file",
+  "image",
+];
+
 const PRO_ITEM_TYPES: ReadonlySet<string> = new Set(["file", "image"]);
+
+// Solid fill for small color dots; neutral gray when there is no type
+export function getItemTypeDotColor(typeName: string | undefined): string {
+  return (typeName && ITEM_TYPE_DOT_COLORS[typeName]) || "bg-muted-foreground/40";
+}
 
 export function getItemTypeTextColor(typeName: string): string {
   return ITEM_TYPE_TEXT_COLORS[typeName] ?? "text-muted-foreground";

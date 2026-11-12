@@ -3,6 +3,7 @@ import { daysBetween, getStartOfDayInTimeZone, getTodayInTimeZone } from "@/lib/
 import { db } from "@/lib/db";
 import { getUserTimezone } from "@/lib/queries/current-user";
 import type { CollectionCardData, CollectionStats, UpcomingExam } from "@/types/collection";
+import type { SidebarCollection } from "@/types/sidebar";
 
 const DEFAULT_RECENT_COLLECTIONS_LIMIT = 6;
 const DEFAULT_UPCOMING_EXAMS_LIMIT = 3;
@@ -40,6 +41,14 @@ export async function getRecentCollections(
       dominantType: getDominantType(typedItems),
       types: summarizeTypes(typedItems),
     };
+  });
+}
+
+export async function getFavoriteCollections(userId: string): Promise<SidebarCollection[]> {
+  return db.collection.findMany({
+    where: { userId, isFavorite: true },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
   });
 }
 
