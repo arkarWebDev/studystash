@@ -1,18 +1,8 @@
-// Dashboard data selection over mock data. Swap these for Prisma queries once the database exists.
+// Dashboard item data over mock data. Collections come from the database (src/lib/queries/collections.ts).
 
-import { daysBetween } from "@/lib/dates";
-import {
-  mockCollections,
-  mockItems,
-  mockItemTypes,
-  mockUser,
-  type MockCollection,
-  type MockItem,
-  type MockItemType,
-} from "@/lib/mock-data";
+import { mockItems, mockItemTypes, mockUser, type MockItem, type MockItemType } from "@/lib/mock-data";
+import type { CollectionStats } from "@/types/collection";
 
-const UPCOMING_EXAMS_LIMIT = 3;
-const RECENT_COLLECTIONS_LIMIT = 6;
 const RECENT_ITEMS_LIMIT = 10;
 
 export interface ReviewSummary {
@@ -20,23 +10,12 @@ export interface ReviewSummary {
   reviewStreak: number;
 }
 
-export interface DashboardStats {
+export interface ItemStats {
   totalItems: number;
-  totalCollections: number;
   favoriteItems: number;
-  favoriteCollections: number;
 }
 
-export interface UpcomingExam {
-  collection: MockCollection;
-  daysUntil: number;
-}
-
-export interface CollectionSummary {
-  collection: MockCollection;
-  dominantType: MockItemType | null;
-  types: MockItemType[];
-}
+export type DashboardStats = ItemStats & CollectionStats;
 
 export interface ItemWithType {
   item: MockItem;
@@ -53,62 +32,11 @@ export function getReviewSummary(): ReviewSummary {
   return { cardsDue: mockUser.cardsDueToday, reviewStreak: mockUser.reviewStreak };
 }
 
-export function getDashboardStats(): DashboardStats {
+export function getItemStats(): ItemStats {
   return {
     totalItems: mockItems.length,
-    totalCollections: mockCollections.length,
     favoriteItems: mockItems.filter((item) => item.isFavorite).length,
-    favoriteCollections: mockCollections.filter((collection) => collection.isFavorite).length,
   };
-}
-
-// Exams from today onwards, nearest first
-export function getUpcomingExams(today: string): UpcomingExam[] {
-  return mockCollections
-    .flatMap((collection) =>
-      collection.examDate ? [{ collection, daysUntil: daysBetween(today, collection.examDate) }] : [],
-    )
-    .filter((exam) => exam.daysUntil >= 0)
-    .sort((a, b) => a.daysUntil - b.daysUntil)
-    .slice(0, UPCOMING_EXAMS_LIMIT);
-}
-
-function getCollectionItems(collectionId: string): MockItem[] {
-  return mockItems.filter((item) => item.collectionIds.includes(collectionId));
-}
-
-// The type the collection contains most of; ties go to the type listed first
-export function getDominantType(items: MockItem[]): MockItemType | null {
-  const counts = new Map<string, number>();
-  for (const item of items) {
-    counts.set(item.itemTypeId, (counts.get(item.itemTypeId) ?? 0) + 1);
-  }
-
-  let dominant: MockItemType | null = null;
-  let highestCount = 0;
-  for (const type of mockItemTypes) {
-    const count = counts.get(type.id) ?? 0;
-    if (count > highestCount) {
-      dominant = type;
-      highestCount = count;
-    }
-  }
-  return dominant;
-}
-
-export function getRecentCollections(): CollectionSummary[] {
-  return [...mockCollections]
-    .sort(byUpdatedAtDesc)
-    .slice(0, RECENT_COLLECTIONS_LIMIT)
-    .map((collection) => {
-      const items = getCollectionItems(collection.id);
-      const typeIds = new Set(items.map((item) => item.itemTypeId));
-      return {
-        collection,
-        dominantType: getDominantType(items),
-        types: mockItemTypes.filter((type) => typeIds.has(type.id)),
-      };
-    });
 }
 
 function withType(items: MockItem[]): ItemWithType[] {

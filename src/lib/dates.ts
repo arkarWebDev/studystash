@@ -17,6 +17,29 @@ export function getTodayInTimeZone(now: Date, timeZone: string): string {
   }).format(now);
 }
 
+// Offset of `timeZone` from UTC at `date`, in ms (positive east of UTC)
+function getTimeZoneOffsetMs(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((p) => p.type === type)?.value ?? 0);
+  const wallClockAsUtc = Date.UTC(part("year"), part("month") - 1, part("day"), part("hour"), part("minute"), part("second"));
+  return wallClockAsUtc - Math.floor(date.getTime() / 1000) * 1000;
+}
+
+// The instant local midnight began today in `timeZone`
+export function getStartOfDayInTimeZone(now: Date, timeZone: string): Date {
+  const midnightAsUtc = Date.parse(getTodayInTimeZone(now, timeZone));
+  return new Date(midnightAsUtc - getTimeZoneOffsetMs(now, timeZone));
+}
+
 // Whole calendar days from `from` to `to` (both YYYY-MM-DD); negative when `to` is earlier
 export function daysBetween(from: string, to: string): number {
   return Math.round((Date.parse(to) - Date.parse(from)) / MS_PER_DAY);

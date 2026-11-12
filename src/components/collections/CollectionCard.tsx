@@ -1,23 +1,23 @@
 import { Star } from "lucide-react";
 import Link from "next/link";
-import type { CollectionSummary } from "@/lib/dashboard";
 import { ItemTypeIcon } from "@/components/items/ItemTypeIcon";
 import { getItemTypeBgTint, getItemTypeLabel, getItemTypeTextColor } from "@/lib/item-types";
 import { cn } from "@/lib/utils";
+import type { CollectionCardData } from "@/types/collection";
 
 interface CollectionCardProps {
-  summary: CollectionSummary;
+  collection: CollectionCardData;
 }
 
-export function CollectionCard({ summary }: CollectionCardProps) {
-  const { collection, dominantType, types } = summary;
+export function CollectionCard({ collection }: CollectionCardProps) {
+  const tintType = collection.dominantType ?? collection.defaultType;
 
   return (
     <Link
       href={`/collections/${collection.id}`}
       className={cn(
         "flex min-w-0 flex-col gap-3 rounded-xl border p-4 outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
-        getItemTypeBgTint(dominantType?.name),
+        getItemTypeBgTint(tintType?.name),
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -32,13 +32,13 @@ export function CollectionCard({ summary }: CollectionCardProps) {
           {collection.itemCount} {collection.itemCount === 1 ? "item" : "items"}
         </span>
         <ul className="flex items-center gap-1.5" aria-label="Item types">
-          {types.map((type) => (
-            <li key={type.id}>
+          {collection.types.map((type) => (
+            <li key={type.slug}>
               <ItemTypeIcon
                 icon={type.icon}
                 className={cn("size-3.5", getItemTypeTextColor(type.name))}
                 role="img"
-                aria-label={getItemTypeLabel(type.slug)}
+                aria-label={`${getItemTypeLabel(type.slug)}: ${type.count}`}
               />
             </li>
           ))}
